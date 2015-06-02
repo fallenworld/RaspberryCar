@@ -1,8 +1,8 @@
-import Rpi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
 
 GPIO.setmode(GPIO.BOARD)
-GPIO.setwarings(False)
+GPIO.setwarnings(False)
 out=8
 GPIO.setup(out, GPIO.OUT)
 
@@ -16,6 +16,6 @@ try:
         else:
             GPIO.output(out, 1)
             state=1
-        sleep(100)
+        time.sleep(0.1)
 except KeyboardInterrupt:
     GPIO.cleanup()
