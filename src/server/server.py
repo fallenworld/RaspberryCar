@@ -33,10 +33,15 @@ def handleClient():
 	global clientUdp
 	global piConnected
 	while(piConnected):
-		data=recv(1024)
+		data=clientUdp.recv(1024)
 		piUdp.send(data)
 		
-while(True):
-	setupUdp()
-	waitPi()
-	handleClient()
+try:
+	while(True):
+		setupUdp()
+		waitPi()
+		handleClient()
+except KeyboardInterrupt:
+	piUdp.close()
+	clientUdp.close()
+		

@@ -150,13 +150,12 @@ def startSocket(_car_):
 try:
     car=Car()
     startSocket(car)
+    s.close()
+    Car.enaOut.stop()
+    Car.enbOut.stop()
+    GPIO.cleanup()
 except KeyboardInterrupt:
     s.close()
     Car.enaOut.stop()
     Car.enbOut.stop()
     GPIO.cleanup()
-
-s.close()
-Car.enaOut.stop()
-Car.enbOut.stop()
-GPIO.cleanup()
