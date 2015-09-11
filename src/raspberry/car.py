@@ -3,6 +3,8 @@ import time
 import socket
 
 UdpPort=9001
+SERVER_PI_PORT
+SERVER_IP="121.42.147.185"
 
 class Car:
     #Define the GPIO interfaces
@@ -115,6 +117,13 @@ def startSocket(_car_):
     s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.bind(("", UdpPort));
     print("UPD socket created, listening on: "+str(UdpPort)+"\n")
+	print("Connecting to server...\n")
+	s.sendto("imfuckingcoming", (SERVER_IP, SERVER_PI_PORT))
+	s.settimeout(8)
+	data=s.recv()
+	if(data=="metoo"):
+		print("Server connected successfully!\n")
+	s.settimeout(None)
     while True:
         data=s.recv(1024)
         _car_.changeKey(data)

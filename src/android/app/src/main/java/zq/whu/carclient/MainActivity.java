@@ -11,17 +11,19 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.gc.materialdesign.views.ButtonRectangle;
+
 
 public class MainActivity extends ActionBarActivity {
     Toolbar toolbar;
-    Button btnEnter;
+    ButtonRectangle btnEnter;
     EditText editText;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         toolbar=(Toolbar)findViewById(R.id.toolbar);
-        btnEnter=(Button)findViewById(R.id.BtnEnter);
+        btnEnter=(ButtonRectangle)findViewById(R.id.BtnEnter);
         editText=(EditText)findViewById(R.id.EtxIP);
         btnEnter.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -32,7 +34,6 @@ public class MainActivity extends ActionBarActivity {
                 finish();
             }
         });
-
         setSupportActionBar(toolbar);
     }
 

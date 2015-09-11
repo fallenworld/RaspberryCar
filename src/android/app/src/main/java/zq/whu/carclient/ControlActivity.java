@@ -8,13 +8,15 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 
+import com.gc.materialdesign.views.ButtonRectangle;
+
 import java.util.LinkedList;
 import java.util.List;
 
 
 public class ControlActivity extends ActionBarActivity {
 
-    List<Button> buttons;
+    List<ButtonRectangle> buttons;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,11 +24,12 @@ public class ControlActivity extends ActionBarActivity {
         setContentView(R.layout.activity_control);
         NetUtil.init();
         buttons=new LinkedList<>();
-        buttons.add((Button)findViewById(R.id.forward));
-        buttons.add((Button)findViewById(R.id.backward));
-        buttons.add((Button)findViewById(R.id.left));
-        buttons.add((Button)findViewById(R.id.right));
-        for (Button button : buttons) {
+        buttons.add((ButtonRectangle)findViewById(R.id.forward));
+        buttons.add((ButtonRectangle)findViewById(R.id.backward));
+        buttons.add((ButtonRectangle)findViewById(R.id.left));
+        buttons.add((ButtonRectangle)findViewById(R.id.right));
+        buttons.add((ButtonRectangle)findViewById(R.id.rush));
+        for (ButtonRectangle button : buttons) {
             button.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
@@ -43,6 +46,9 @@ public class ControlActivity extends ActionBarActivity {
                                 break;
                             case R.id.right:
                                 NetUtil.sendMessage("d");
+                                break;
+                            case R.id.rush:
+                                NetUtil.sendMessage("^");
                                 break;
                             default:
                                 break;
@@ -61,6 +67,9 @@ public class ControlActivity extends ActionBarActivity {
                                 break;
                             case R.id.right:
                                 NetUtil.sendMessage("e");
+                                break;
+                            case R.id.rush:
+                                NetUtil.sendMessage(".");
                                 break;
                             default:
                                 break;
