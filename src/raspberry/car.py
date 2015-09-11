@@ -127,6 +127,7 @@ class Car:
             self.stop()
         
 def startSocket(_car_):
+	global s
     s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.bind(("", UdpPort));
     print("UPD socket created, listening on: "+str(UdpPort)+"\n")
