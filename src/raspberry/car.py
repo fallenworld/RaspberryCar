@@ -29,6 +29,7 @@ class Car:
         self.backwardKeyPressed=False
         self.leftKeyPressed=False
         self.rightKeyPressed=False
+        self.rushKeyPressed=False
 
     def forward(self):
         GPIO.output([Car.in1, Car.in2], (GPIO.HIGH, GPIO.LOW))
@@ -47,10 +48,16 @@ class Car:
 
     def turnRight(self):
         Car.enaOut.ChangeDutyCycle(100)
-        Car.enbOut.ChangeDutyCycle(self.speed*10)
+        Car.enbOut.ChangeDutyCycle(self.speed*5)
 
     def turnLeft(self):
-        Car.enaOut.ChangeDutyCycle(self.speed*10)
+        Car.enaOut.ChangeDutyCycle(self.speed*5)
+        Car.enbOut.ChangeDutyCycle(100)
+
+    def rush(self):
+        GPIO.output([Car.in1, Car.in2], (GPIO.HIGH, GPIO.LOW))
+        GPIO.output([Car.in3, Car.in4], (GPIO.HIGH, GPIO.LOW))
+        Car.enaOut.ChangeDutyCycle(100)
         Car.enbOut.ChangeDutyCycle(100)
 
     def changeKey(self, data):
@@ -70,13 +77,19 @@ class Car:
             self.rightKeyPressed=True
         elif(data=="e"):
             self.rightKeyPressed=False
+        elif(data=="^"):
+            self.rushKeyPressed=True
+        elif(data=="."):
+            self.rushKeyPressed=False
         else:
             print("Unkown message: "+data+"\n")
         self.onKeyChanged()
 
 
     def onKeyChanged(self):
-        if(self.forwardKeyPressed):
+        if(self.rushKeyPressed):
+            self.rush()
+        elif(self.forwardKeyPressed):
             if(self.backwardKeyPressed):
                 self.stop()
             else:
