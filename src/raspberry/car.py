@@ -1,11 +1,55 @@
 import RPi.GPIO as GPIO
 import time
 import socket
+import threading
 
 UdpPort=9001
 SERVER_PI_PORT=9003
 SERVER_IP="121.42.147.185"
+serverAddress=(SERVER_IP, SERVER_PI_PORT)
 
+class ConnectThread(threading.Thread):
+	def __init__(self):
+		threading.Thread.__init__(self)
+		self.online=False
+		self.onlineLock=threading.Lock()
+
+	def isOnline(self):
+		self.onlineLock.acquire()
+		ret=self.piConnected
+		self.onlineLock.release()
+		return ret
+		
+	def setOnline(self, value):
+		self.onlineLock.acquire()
+		self.piConnected=value
+		self.onlineLock.release()
+		
+	def run(self):
+		global udp
+		lastTime=0
+		while(True):
+			print("Connecting to server...\n")
+			udp.sendto("imfuckingcoming", serverAddress)
+			udp.settimeout(5)
+			try:
+				data=udp.recv(1024)
+			except:
+				print("Connect time out\n")
+				exit()
+			if(data=="metoo"):
+				print("Server connected successfully!\n")
+				self.setOnline(True);
+				udp.settimeout(None)
+			else:
+				print("Wrong message received from server: "+data+"\n")
+				exit()
+			lastTime=time.time()
+			while self.isOnline():
+				udp.sendto("online", serverAddress)
+				time.sleep(10)
+				
+					
 class Car:
     #Define the GPIO interfaces
     in1=16
@@ -15,7 +59,8 @@ class Car:
     ena=11
     enb=12
 
-    def __init__(self):
+    def __init__(self, connectThread):
+		self.connectThread=connectThread
         self.speed=5
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
@@ -125,37 +170,52 @@ class Car:
                     self.goStraight()
         else:
             self.stop()
-        
-def startSocket(_car_):
-    global s
-    s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind(("", UdpPort));
+			
+	def waitMessage(self, connectThread):
+		global udp
+		lastTime=time.time()
+		while True:
+			if(connectThread.isOnline()):
+				data=udp.recv(1024)
+				self.changeKey(data)
+			else:
+				time.sleep(1)
+		'''
+		udp.settimeout(30)
+		while True:
+			try:
+				data=udp.recv(1024)
+			except socket.timeout
+				if(self.connectThread.isOnline())
+					print("Server disconnect\n")
+					self.connectThread.setOnline(False)
+			if(time.time()-lastTime>30):
+				print("Server disconnect\n")
+				self.setPiConnected(False)
+			if(data=="online"):
+				self.lastTime=time.time()
+			else:
+				if()
+		'''		
+				
+
+def startSocket():
+    global udp
+    udp=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp.bind(("", UdpPort));
     print("UPD socket created, listening on: "+str(UdpPort)+"\n")
-    print("Connecting to server...\n")
-    s.sendto("imfuckingcoming", (SERVER_IP, SERVER_PI_PORT))
-    s.settimeout(5)
-    try:
-        data=s.recv(1024)
-    except:
-        print("Connect time out\n")
-        exit()
-    if(data=="metoo"):
-        print("Server connected successfully!\n")
-        s.settimeout(None)
-    while True:
-        data=s.recv(1024)
-        _car_.changeKey(data)
-        #print(data+"\n")
+	
+def clean():
+	udp.close()
+    Car.enaOut.stop()
+    Car.enbOut.stop()
+    GPIO.cleanup()
 
 try:
     car=Car()
-    startSocket(car)
-    s.close()
-    Car.enaOut.stop()
-    Car.enbOut.stop()
-    GPIO.cleanup()
+    startSocket()
+	clean()
+	
+
 except KeyboardInterrupt:
-    s.close()
-    Car.enaOut.stop()
-    Car.enbOut.stop()
-    GPIO.cleanup()
+	clean()

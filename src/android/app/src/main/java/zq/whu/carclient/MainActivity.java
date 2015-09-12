@@ -28,7 +28,6 @@ public class MainActivity extends ActionBarActivity {
         btnEnter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                NetUtil.setIpAddress(editText.getText().toString());
                 Intent intent=new Intent(MainActivity.this, ControlActivity.class);
                 startActivity(intent);
                 finish();

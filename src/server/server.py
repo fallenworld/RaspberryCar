@@ -1,9 +1,60 @@
+# coding=utf-8
 import socket
+import threading
+import time
 
 SERVER_CLIENT_PORT=9002
 SERVER_PI_PORT=9003
-piConnected=False
 
+#心跳包线程
+class PiThread(threading.Thread):
+
+	def __init__(self):
+		threading.Thread.__init__(self)
+		self.piConnected=False
+		self.connectLock=threading.Lock()
+	
+	def isPiConnected(self):
+		self.connectLock.acquire()
+		ret=self.piConnected
+		self.connectLock.release()
+		return ret
+		
+	def setPiConnected(self, value):
+		self.connectLock.acquire()
+		self.piConnected=value
+		self.connectLock.release()
+		
+	def run(self):
+		global piUdp
+		global piAddress
+		lastTime=0
+		while True:
+			while(not self.isPiConnected()):
+				data,piAddress=piUdp.recvfrom(1024)
+				if(data=="imfuckingcoming"):
+					piUdp.sendto("metoo", piAddress)
+					print("Raspberry connected\n")
+					print("IP: "+piAddress[0]+"    ")
+					print("Port: "+str(piAddress[1])+"\n")	
+					self.setPiConnected(True)
+			piUdp.settimeout(30)
+			lastTime=time.time()
+			while(self.isPiConnected()):
+				try:
+					data, piAddress=piUdp.recvfrom(1024)
+				except socket.timeout:
+					print("Raspberry disconnect\n")
+					self.setPiConnected(False)
+					break
+				if(time.time()-lastTime>30):
+					print("Raspberry disconnect\n")
+					self.setPiConnected(False)
+					break
+				if(data=="online"):
+					self.lastTime=time.time()
+					#piUdp.sendto("online", piAddress)
+		
 def setupUdp():
 	global clientUdp
 	global piUdp
@@ -14,33 +65,21 @@ def setupUdp():
 	piUdp.bind(("", SERVER_PI_PORT))
 	print("Raspberry UDP is listening on port: "+str(SERVER_PI_PORT))
 	
-	
-def waitPi():
-	global piUdp
-	global piConnected
-	global piAddress
-	while(not piConnected):
-		data,piAddress=piUdp.recvfrom(1024)
-		if(data=="imfuckingcoming"):
-			piConnected=True
-			piUdp.sendto("metoo", piAddress)
-			print("Raspberry connected\n")
-			print("IP: "+piAddress[0]+"    ")
-			print("Port: "+str(piAddress[1])+"\n")
-			
-def handleClient():
+def handleClient(piThread):
 	global piUdp
 	global clientUdp
-	global piConnected
-	while(piConnected):
+	while(True):
 		data=clientUdp.recv(1024)
-		piUdp.send(data)
+		if(piThread.isPiConnected()):
+			piUdp.send(data)
 		
 try:
-	while(True):
-		setupUdp()
-		waitPi()
-		handleClient()
+	setupUdp()
+	piThread=PiThread()
+	piThread.start()
+	handleClient(piThread)
+	piThread.join()
+	
 except KeyboardInterrupt:
 	piUdp.close()
 	clientUdp.close()

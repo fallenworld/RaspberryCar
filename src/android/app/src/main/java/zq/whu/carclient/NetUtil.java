@@ -21,15 +21,15 @@ public class NetUtil {
 
     private static InetAddress address;
 
-    private final static int PORT=9001;
+    private final static int CLIENT_UDP_PORT=9002;
 
-    private static String ipAddress;
+    private final static String serverIp="121.42.147.185";
 
     //初始化
     public static void init() {
         try {
             udp=new DatagramSocket();
-            address=InetAddress.getByName(ipAddress);
+            address=InetAddress.getByName(serverIp);
         }
         catch (SocketException e) {
             e.printStackTrace();
@@ -39,12 +39,12 @@ public class NetUtil {
         }
     }
 
-    //向小车端发送消息
+    //通过服务器向小车端发送消息
     public static void sendMessage(final String key) {
         new Thread() {
             @Override
             public void run() {
-                DatagramPacket packet=new DatagramPacket(key.getBytes(), key.getBytes().length, address, PORT);
+                DatagramPacket packet=new DatagramPacket(key.getBytes(), key.getBytes().length, address, CLIENT_UDP_PORT);
                 try {
                     udp.send(packet);
                 }
@@ -54,9 +54,4 @@ public class NetUtil {
             }
         }.start();
     }
-
-    public static void setIpAddress(String ipAddress) {
-        NetUtil.ipAddress=ipAddress;
-    }
-
 }
