@@ -35,7 +35,7 @@ class ConnectThread(threading.Thread):
 			udp.settimeout(5)
 			try:
 				data=udp.recv(1024)
-			except:
+			except socket.timeout:
 				print("Connect time out\n")
 				os._exit(1)
 			if(data=="metoo"):
