@@ -52,7 +52,7 @@ class PiThread(threading.Thread):
 					self.setPiConnected(False)
 					break
 				if(data=="online"):
-					self.lastTime=time.time()
+					lastTime=time.time()
 					#piUdp.sendto("online", piAddress)
 		
 def setupUdp():
