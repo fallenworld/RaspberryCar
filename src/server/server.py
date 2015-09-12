@@ -71,14 +71,14 @@ def handleClient(piThread):
 	while(True):
 		data=clientUdp.recv(1024)
 		if(piThread.isPiConnected()):
-			piUdp.send(data)
+			piUdp.sendto(data, piAddress)
 		
 try:
 	setupUdp()
 	piThread=PiThread()
+	piThread.setDaemon(True)
 	piThread.start()
 	handleClient(piThread)
-	piThread.join()
 	
 except KeyboardInterrupt:
 	piUdp.close()

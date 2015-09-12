@@ -215,10 +215,10 @@ def clean():
 try:
     startSocket()
     connectThread=ConnectThread()
+    connectThread.setDaemon(True)
     car=Car(connectThread)
     connectThread.start()
     car.waitMessage()
-    connectThread.join()
     clean()
 	
 
