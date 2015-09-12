@@ -2,6 +2,7 @@ import RPi.GPIO as GPIO
 import time
 import socket
 import threading
+import os
 
 UdpPort=9001
 SERVER_PI_PORT=9003
@@ -16,13 +17,13 @@ class ConnectThread(threading.Thread):
 
 	def isOnline(self):
 		self.onlineLock.acquire()
-		ret=self.piConnected
+		ret=self.online
 		self.onlineLock.release()
 		return ret
 		
 	def setOnline(self, value):
 		self.onlineLock.acquire()
-		self.piConnected=value
+		self.online=value
 		self.onlineLock.release()
 		
 	def run(self):
@@ -36,14 +37,14 @@ class ConnectThread(threading.Thread):
 				data=udp.recv(1024)
 			except:
 				print("Connect time out\n")
-				exit()
+				os._exit(1)
 			if(data=="metoo"):
 				print("Server connected successfully!\n")
 				self.setOnline(True);
 				udp.settimeout(None)
 			else:
 				print("Wrong message received from server: "+data+"\n")
-				exit()
+				os._exit(1)
 			lastTime=time.time()
 			while self.isOnline():
 				udp.sendto("online", serverAddress)
@@ -60,7 +61,7 @@ class Car:
     enb=12
 
     def __init__(self, connectThread):
-		self.connectThread=connectThread
+	self.connectThread=connectThread
         self.speed=5
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
@@ -171,15 +172,15 @@ class Car:
         else:
             self.stop()
 			
-	def waitMessage(self, connectThread):
-		global udp
-		lastTime=time.time()
-		while True:
-			if(connectThread.isOnline()):
-				data=udp.recv(1024)
-				self.changeKey(data)
-			else:
-				time.sleep(1)
+    def waitMessage(self):
+        global udp
+        lastTime=time.time()
+        while True:
+            if(connectThread.isOnline()):
+                data=udp.recv(1024)
+                self.changeKey(data)
+            else:
+                time.sleep(1)
 		'''
 		udp.settimeout(30)
 		while True:
@@ -206,16 +207,20 @@ def startSocket():
     print("UPD socket created, listening on: "+str(UdpPort)+"\n")
 	
 def clean():
-	udp.close()
+    udp.close()
     Car.enaOut.stop()
     Car.enbOut.stop()
     GPIO.cleanup()
 
 try:
-    car=Car()
     startSocket()
-	clean()
+    connectThread=ConnectThread()
+    car=Car(connectThread)
+    connectThread.start()
+    car.waitMessage()
+    connectThread.join()
+    clean()
 	
 
 except KeyboardInterrupt:
-	clean()
+    clean()
